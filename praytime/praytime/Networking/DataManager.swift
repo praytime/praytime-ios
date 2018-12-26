@@ -9,28 +9,40 @@
 import UIKit
 import Firebase
 
+protocol DataManagerDelegate {
+    func isloading(_ : Bool)
+    func didReceieveFilteredEvents(events: [Event])
+    func eventsDidFail(error: Error)
+}
+
 class DataManager: NSObject {
 
     /// Singleton instance of DataManager
     static let shared = DataManager()
     /// The Firestore database for praytime
     private let database = Firestore.firestore()
-        
+    /// Events retrieved from database
+    var events: [Event]?
+    /// Data manager delegate
+    var delegate: DataManagerDelegate?
+    
     /// Start up and configure database connection
     class func configure() {
         FirebaseApp.configure()
         let settings = DataManager.shared.database.settings
         settings.areTimestampsInSnapshotsEnabled = true
         DataManager.shared.database.settings = settings
+        DataManager.shared.getEvents()
     }
     
     /// Get the events array from the database.
     /// - Parameters:
     ///     - completion: The closure that returns and optional error, or an optional array of events
-    func getEvents(completion: @escaping (_ error: Error?, _ events: [Event]?) -> ()) {
+    func getEvents() {
+        self.delegate?.isloading(true)
         database.collection(Strings.events).getDocuments { (snapshot, error) in
             if let error = error {
-                completion(error, nil)
+                self.delegate?.eventsDidFail(error: error)
             }
             else if let snapshot = snapshot {
                 var events: [Event] = []
@@ -42,7 +54,7 @@ class DataManager: NSObject {
                         events.append(event)
                     }
                 }
-                completion(nil, events)
+                self.events = events
             }
         }
     }

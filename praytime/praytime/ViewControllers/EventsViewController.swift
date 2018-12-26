@@ -9,7 +9,6 @@
 import UIKit
 
 class EventsViewController: UIViewController {
-    var events: [Event]?
     var filteredEvents: [Event]?
     let tableView: UITableView = UITableView()
     var isFavorites: Bool =  false
@@ -20,6 +19,7 @@ class EventsViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        DataManager.shared.delegate = self
         setupTableView()
     }
     
@@ -31,7 +31,7 @@ class EventsViewController: UIViewController {
         tableView.separatorStyle = .none
         view.addSubview(tableView)
         pinTableViewToEdges()
-        tableView(isHidden: true)
+        tableView.isHidden = true
     }
     
     func pinTableViewToEdges(topContraintTo anchor: NSLayoutYAxisAnchor? = nil) {
@@ -41,25 +41,13 @@ class EventsViewController: UIViewController {
         tableView.topAnchor.constraint(equalTo: anchor ?? view.topAnchor).isActive = true
     }
     
-    func tableView(isHidden: Bool, animated: Bool = false) {
+    func showTableView(animated: Bool = false) {
         if !animated {
-            tableView.isHidden = isHidden
+            tableView.isHidden = false
         }
         else {
-            UIView.animate(withDuration: 0.3) {
-                self.tableView.isHidden = isHidden
-            }
-        }
-    }
-    
-    func getEvents(completion: EventsCallback? = nil) {
-        DataManager.shared.getEvents { (error, events) in
-            if let error = error {
-                completion?(error, nil)
-            }
-            else if let events = events {
-                self.events = events
-                completion?(nil, events)
+            UIView.animate(withDuration: 0.6) {
+                self.tableView.isHidden = false
             }
         }
     }
@@ -93,6 +81,26 @@ extension EventsViewController: UITableViewDataSource {
         cell.delegate = self
         cell.setNeedsLayout()
         return cell
+    }
+}
+
+extension EventsViewController: DataManagerDelegate {
+    func isloading(_: Bool) {
+        
+    }
+    
+    func didReceieveFilteredEvents(events: [Event]) {
+        filteredEvents = events
+        DispatchQueue.main.async {
+            self.tableView.reloadData()
+            if self.tableView.isHidden {
+                self.showTableView(animated: true)
+            }
+        }
+    }
+    
+    func eventsDidFail(error: Error) {
+        
     }
 }
 

@@ -11,11 +11,12 @@ import CoreLocation
 
 extension DataManager {
     
-    func filterEvents(for location: String, events: [Event], completion: @escaping (_ error: Error?, _ events: [Event]?) -> ()) {
-        
+    func filterEvents(for location: String) {
+        guard let events = events else { return }
+        self.delegate?.isloading(true)
         findLocation(from: location) { (error, location) in
             if let error = error {
-                completion(error, nil)
+                self.delegate?.eventsDidFail(error: error)
             }
             else if let location = location {
                 let filteredEvents = events.filter {
@@ -24,13 +25,15 @@ extension DataManager {
                 let sortedEvents = filteredEvents.sorted {
                     return $0.location.distance(from: location) < $1.location.distance(from: location)
                 }
-                completion(nil, sortedEvents)
+                self.delegate?.isloading(false)
+                self.delegate?.didReceieveFilteredEvents(events: sortedEvents)
             }
         }
     }
     
-    func filterBookmaredEvents(events: [Event]) -> [Event] {
-        return events.filter { $0.bookmarked }
+    func filterBookmaredEvents()  {
+        guard let events = events else { return }
+        self.delegate?.didReceieveFilteredEvents(events: events.filter { $0.bookmarked })
     }
     
     private func findLocation(from string: String, completion: @escaping (_ error: Error?, _ location: CLLocation?) -> () ) {

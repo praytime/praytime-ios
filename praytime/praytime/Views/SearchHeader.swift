@@ -37,7 +37,7 @@ class SearchHeader: UIView {
         label.topAnchor.constraint(equalTo: topAnchor, constant: 8).isActive = true
         label.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -8).isActive = true
         label.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16).isActive = true
-        label.trailingAnchor.constraint(equalTo: trailingAnchor, constant: 16).isActive = true
+        label.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16).isActive = true
     }
 }
 

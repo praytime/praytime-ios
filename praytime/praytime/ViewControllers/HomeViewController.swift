@@ -26,9 +26,7 @@ class HomeViewController: EventsViewController {
         navigationItem.searchController = search
         
         let searchController = search.searchResultsController as! SearchResultsTableViewController
-        searchController.delegate = self
-        
-        getEvents()
+        searchController.delegate = self        
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -66,25 +64,13 @@ extension HomeViewController: UISearchResultsUpdating {
 extension HomeViewController: SearchResultsDelegate {
     func didSelectLocation(title: String) {
         headerTitle = title
-        tableView.reloadData()
+        DispatchQueue.main.async {
+            self.tableView.reloadData()
+        }
         search.dismiss(animated: true, completion: nil)
         search.searchBar.text = nil
         
-        guard let events = events else { return }
-        
-        DataManager.shared.filterEvents(for: title, events: events) { (error, events) in
-            if let error = error {
-                print("There was an error: \(error.localizedDescription)")
-            }
-            else if let events = events {
-                self.filteredEvents = events
-                self.tableView.reloadData()
-                if self.tableView.isHidden {
-                    self.tableView(isHidden: false, animated: true)
-                }
-            }
-        }
-        
+        DataManager.shared.filterEvents(for: title)
     }
 }
 
